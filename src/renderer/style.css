@@ -12,11 +12,11 @@ html, body, .artwork {
 }
 
 body {
-    -webkit-app-region: drag;
     font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Hiragino Kaku Gothic ProN', 'Yu Gothic Bold', meiryo, sans-serif;
 }
 
 .artwork {
+    -webkit-app-region: drag;
     position: relative;
     background-size: cover;
     background-repeat: no-repeat;
@@ -25,6 +25,7 @@ body {
 }
 
 .artwork .footer {
+    -webkit-app-region: no-drag;
     position: absolute;
     bottom: 0;
     width: 100%;

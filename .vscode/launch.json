@@ -10,7 +10,8 @@
             "args": [],
             "cwd": "${workspaceRoot}",
             "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron.cmd",
-            "runtimeArgs": []
+            "runtimeArgs": [],
+            "sourceMaps": true
         }
     ]
 }

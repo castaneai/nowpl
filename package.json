@@ -12,8 +12,12 @@
   "author": "castaneai",
   "license": "MIT",
   "dependencies": {
+    "electron-json-storage": "^2.0.1",
+    "es6-promise": "^4.0.5",
     "itunes-win": "0.0.5",
-    "semantic-ui-css": "^2.2.4"
+    "node-twitter-api": "^1.8.0",
+    "semantic-ui-css": "^2.2.4",
+    "twit": "^2.2.5"
   },
   "devDependencies": {
     "electron": "^1.1.5",

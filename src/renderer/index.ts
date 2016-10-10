@@ -1,4 +1,5 @@
 import * as ITunesWin from 'itunes-win'
+import { ipcRenderer } from 'electron'
 
 /** アートワーク画像のmime typeを取得 */
 const getArtworkMimeType = (artwork: ITunesWin.Artwork) => {
@@ -14,6 +15,11 @@ const getArtworkMimeType = (artwork: ITunesWin.Artwork) => {
 const getArtworkDataURI = (artwork: ITunesWin.Artwork) => `data:${getArtworkMimeType(artwork)};base64,${artwork.data.toString('base64')}`
 
 window.onload = () => {
+    ipcRenderer.on('twitter-auth-reply', (event, arg) => {
+        console.log(arg)
+    })
+    ipcRenderer.send('twitter-auth', null)
+
     const trackNameElement = document.querySelector('#track-name')
     const artworkImageElements = document.querySelectorAll('.artwork') as NodeListOf<HTMLElement>
 
