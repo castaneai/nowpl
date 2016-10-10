@@ -2,22 +2,22 @@
   "name": "nowpl",
   "version": "0.0.1",
   "description": "",
-  "main": "start.js",
+  "main": "src/main.js",
   "scripts": {
-    "start": "electron ."
+    "start": "tsc && electron .",
+    "tsc": "tsc",
+    "typings": "typings"
   },
   "author": "castaneai",
   "license": "MIT",
   "dependencies": {
-    "babel-preset-es2015": "^6.9.0",
-    "babel-preset-react": "^6.11.1",
-    "babel-register": "^6.11.5",
     "electron-prebuilt": "^1.2.0",
-    "itunes-win": "0.0.5",
-    "react": "^15.2.1",
-    "react-dom": "^15.2.1"
+    "itunes-win": "0.0.5"
   },
   "devDependencies": {
-    "electron-rebuild": "^1.1.5"
+    "electron": "^1.1.5",
+    "tslint": "^3.15.1",
+    "typescript": "^2.0.3",
+    "typings": "^1.4.0"
   }
 }
