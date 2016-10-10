@@ -4,6 +4,7 @@
   "description": "",
   "main": "src/main.js",
   "scripts": {
+    "postinstall": "typings install",
     "start": "tsc && electron .",
     "tsc": "tsc",
     "typings": "typings"
@@ -11,11 +12,12 @@
   "author": "castaneai",
   "license": "MIT",
   "dependencies": {
-    "electron-prebuilt": "^1.2.0",
-    "itunes-win": "0.0.5"
+    "itunes-win": "0.0.5",
+    "semantic-ui-css": "^2.2.4"
   },
   "devDependencies": {
     "electron": "^1.1.5",
+    "electron-prebuilt": "^1.2.0",
     "tslint": "^3.15.1",
     "typescript": "^2.0.3",
     "typings": "^1.4.0"

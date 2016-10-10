@@ -1,4 +1,34 @@
+.ui.card,
+.ui.card > .image {
+    width: 100%;
+    height: 100%;
+}
+
+html, body, .artwork {
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    -webkit-app-region: drag;
+    font-family: -apple-system, BlinkMacSystemFont, 'Helvetica Neue', 'Hiragino Kaku Gothic ProN', 'Yu Gothic Bold', meiryo, sans-serif;
+}
+
 .artwork {
-    width: 200px;
-    height: auto;
+    position: relative;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-attachment: fixed;
+}
+
+.artwork .footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    padding: 1em;
+    background-color: rgba(240, 240, 240, 0.93);
+    border-top: 1px solid #bbb;
 }
