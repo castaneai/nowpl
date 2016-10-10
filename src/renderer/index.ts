@@ -1,35 +1,32 @@
-import * as ITunesWin from 'itunes-win'
 import { ipcRenderer } from 'electron'
-
-/** アートワーク画像のmime typeを取得 */
-const getArtworkMimeType = (artwork: ITunesWin.Artwork) => {
-        switch (artwork.format) {
-            case 'JPEG': return 'image/jpeg'
-            case 'PNG': return 'image/png'
-            case 'GIF': return 'image/gif'
-            default: throw new Error(`invalid artwork format: ${artwork.format}`)
-        }
-    }
-
-/** アートワーク画像をData URI形式で取得 */
-const getArtworkDataURI = (artwork: ITunesWin.Artwork) => `data:${getArtworkMimeType(artwork)};base64,${artwork.data.toString('base64')}`
+import { NowPlayingTrackInfo } from '../main'
 
 window.onload = () => {
     ipcRenderer.on('twitter-auth-reply', (event, arg) => {
         console.log(arg)
     })
-    ipcRenderer.send('twitter-auth', null)
+    ipcRenderer.send('twitter-auth')
 
-    const trackNameElement = document.querySelector('#track-name')
-    const artworkImageElements = document.querySelectorAll('.artwork') as NodeListOf<HTMLElement>
+    const tweetButtonElement = document.getElementById('tweet-button')
+    let nowPlayingTrack: NowPlayingTrackInfo
 
-    ITunesWin.getCurrentTrack((err, track) => {
-        if (err === null) {
-            trackNameElement.innerHTML = `${track.name} - ${track.artist}`
-            const imageDataURI = getArtworkDataURI(track.artwork)
-            for (let i = 0; i < artworkImageElements.length; i++) {
-                artworkImageElements[i].style.backgroundImage = `url(${imageDataURI})`
-            }
+    tweetButtonElement.addEventListener('click', () => {
+        if (!nowPlayingTrack) {
+            console.error('nowplaying track not found')
+            return
         }
+        const message = `#nowplaying ${nowPlayingTrack.name} - ${nowPlayingTrack.artist}`
+        console.log(message)
+        ipcRenderer.send('twitter-post', message)
     })
+
+    const trackNameElement = document.getElementById('track-name')
+    const artworkImageElement = document.getElementById('artwork')
+
+    ipcRenderer.on('itunes-get-track-reply', (event, arg) => {
+        nowPlayingTrack = arg as NowPlayingTrackInfo
+        trackNameElement.innerHTML = `${nowPlayingTrack.name} - ${nowPlayingTrack.artist}`
+        artworkImageElement.style.backgroundImage = `url(${nowPlayingTrack.artworkUrl})`
+    })
+    ipcRenderer.send('itunes-get-track')
 }

@@ -17,7 +17,7 @@
     "itunes-win": "0.0.5",
     "node-twitter-api": "^1.8.0",
     "semantic-ui-css": "^2.2.4",
-    "twit": "^2.2.5"
+    "tempfile": "^1.1.1"
   },
   "devDependencies": {
     "electron": "^1.1.5",

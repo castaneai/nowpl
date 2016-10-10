@@ -1,5 +1,17 @@
 import { Promise } from 'es6-promise'
+import { Artwork } from 'itunes-win'
+
 const TwitterApi = require('node-twitter-api')
+
+
+const getArtworkExt = (artwork: Artwork) => {
+    switch (artwork.format) {
+        case 'JPEG': return '.jpg'
+        case 'PNG': return '.png'
+        case 'GIF': return '.gif'
+        default: return null
+    }
+}
 
 export interface TwitterApiKey {
     consumerKey: string
@@ -63,6 +75,30 @@ export class TwitterAuth {
                     accessTokenSecret: accessTokenSecret,
                 })
             })
+        })
+    }
+}
+
+export class Twitter {
+
+    private api: any
+
+    constructor(private credentials: TwitterCredentials) {
+        this.api = new TwitterApi({
+            consumerKey: credentials.consumerKey,
+            consumerSecret: credentials.consumerSecret,
+            callback: 'http://twitter.com',
+        })
+    }
+
+    postTweetWithImage(message: string, imageFilePath: string): void {
+        this.api.uploadMedia({media: imageFilePath},
+        this.credentials.accessToken,
+        this.credentials.accessTokenSecret, (err: any, data: any, response: any) => {
+            this.api.statuses('update', {
+                status: message,
+                media_ids: data.media_id_string,
+            }, this.credentials.accessToken, this.credentials.accessTokenSecret, (err: any) => {})
         })
     }
 }
