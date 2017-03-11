@@ -3,5 +3,6 @@
     "node_modules/": true,
     "src/**/*.js": true,
     "src/**/*.js.map": true
-  }
+},
+"vsicons.presets.angular": false
 }

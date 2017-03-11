@@ -2,28 +2,33 @@
   "name": "nowpl",
   "version": "0.0.1",
   "description": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/castaneai/nowpl"
+  },
   "main": "src/main.js",
   "scripts": {
-    "postinstall": "typings install",
     "start": "tsc && electron .",
-    "tsc": "tsc",
-    "typings": "typings"
+    "tsc": "tsc"
   },
   "author": "castaneai",
   "license": "MIT",
   "dependencies": {
-    "electron-json-storage": "^2.0.1",
-    "es6-promise": "^4.0.5",
+    "electron": "^1.6.2",
+    "electron-json-storage": "^3.0.1",
+    "es6-promise": "^4.1.0",
     "itunes-win": "0.0.5",
     "node-twitter-api": "^1.8.0",
-    "semantic-ui-css": "^2.2.4",
+    "semantic-ui-css": "^2.2.9",
     "tempfile": "^1.1.1"
   },
   "devDependencies": {
-    "electron": "^1.1.5",
-    "electron-prebuilt": "^1.2.0",
-    "tslint": "^3.15.1",
-    "typescript": "^2.0.3",
-    "typings": "^1.4.0"
+    "@types/electron": "^1.4.33",
+    "@types/electron-json-storage": "0.0.19",
+    "@types/node": "^7.0.8",
+    "@types/tempfile": "^1.1.5",
+    "electron-rebuild": "^1.5.7",
+    "tslint": "^4.5.1",
+    "typescript": "^2.2.1"
   }
 }

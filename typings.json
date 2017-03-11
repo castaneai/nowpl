@@ -1,8 +1,0 @@
-{
-  "globalDependencies": {
-    "electron-json-storage": "registry:dt/electron-json-storage#0.0.0+20160324000215",
-    "github-electron": "registry:dt/github-electron#1.4.2+20161006163813",
-    "node": "registry:dt/node#6.0.0+20161010101523",
-    "tempfile": "registry:dt/tempfile#1.1.0+20160608082157"
-  }
-}
