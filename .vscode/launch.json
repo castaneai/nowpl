@@ -2,15 +2,13 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Run Electron App",
+            "name": "Debug Electron App",
             "type": "node",
             "request": "launch",
             "preLaunchTask": "tsc",
-            "program": "${workspaceRoot}/src/main.js",
-            "args": [],
+            "program": "${workspaceRoot}/src/app.js",
             "cwd": "${workspaceRoot}",
             "runtimeExecutable": "${workspaceRoot}/node_modules/.bin/electron.cmd",
-            "runtimeArgs": [],
             "sourceMaps": true
         }
     ]

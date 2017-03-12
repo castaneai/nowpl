@@ -1,104 +1,146 @@
+import * as fs from 'fs'
 import { Promise } from 'es6-promise'
-import { Artwork } from 'itunes-win'
+const TwitterApi = require('node-twitter-api')  // using require() because d.ts not found
 
-const TwitterApi = require('node-twitter-api')
-
-
-const getArtworkExt = (artwork: Artwork) => {
-    switch (artwork.format) {
-        case 'JPEG': return '.jpg'
-        case 'PNG': return '.png'
-        case 'GIF': return '.gif'
-        default: return null
-    }
+function toBase64Image(imageFilePath: string): Promise<string> {
+	return new Promise<string>((resolve, reject) => {
+		fs.readFile(imageFilePath, (err, data) => {
+			if (err) {
+				reject(err)
+				return
+			}
+			resolve(data.toString('base64'))
+		})
+	})
 }
 
-export interface TwitterApiKey {
-    consumerKey: string
-    consumerSecret: string
+export interface ConsumerKey {
+	consumerKey: string
+	consumerSecret: string
 }
 
-export interface TwitterApiRequestToken {
-    requestToken: string
-    requestTokenSecret: string
-    authUrl: string
+export interface RequestToken {
+	requestToken: string
+	requestTokenSecret: string
+	authUrl: string
 }
 
-export interface TwitterApiAccessToken {
-    accessToken: string
-    accessTokenSecret: string
+export interface AccessToken {
+	accessToken: string
+	accessTokenSecret: string
 }
 
-export interface TwitterCredentials extends TwitterApiKey, TwitterApiAccessToken {}
+export interface TwitterCredentials extends ConsumerKey, AccessToken { }
 
 export class TwitterAuth {
 
-    private api: any
+	private api: any
 
-    getRequestToken(apiKey: TwitterApiKey): Promise<TwitterApiRequestToken> {
-        const self = this
-        return new Promise<TwitterApiRequestToken>((resolve, reject) => {
-            self.api = new TwitterApi({
-                consumerKey: apiKey.consumerKey,
-                consumerSecret: apiKey.consumerSecret,
-                callback: 'http://twitter.com',
-            })
-            self.api.getRequestToken((err: any, requestToken: string, requestTokenSecret: string) => {
-                if (err) {
-                    console.error(err)
-                    reject(err)
-                    return
-                }
-                resolve({
-                    requestToken: requestToken,
-                    requestTokenSecret: requestTokenSecret,
-                    authUrl: self.api.getAuthUrl(requestToken),
-                })
-            })
-        })
-    }
+	getRequestToken(apiKey: ConsumerKey): Promise<RequestToken> {
+		return new Promise<RequestToken>((resolve, reject) => {
+			this.api = new TwitterApi({
+				consumerKey: apiKey.consumerKey,
+				consumerSecret: apiKey.consumerSecret,
+				callback: 'http://twitter.com',
+			})
+			this.api.getRequestToken((err: any, requestToken: string, requestTokenSecret: string) => {
+				if (err) {
+					console.error(err)
+					reject(err)
+					return
+				}
+				resolve({
+					requestToken: requestToken,
+					requestTokenSecret: requestTokenSecret,
+					authUrl: this.api.getAuthUrl(requestToken),
+				})
+			})
+		})
+	}
 
-    getAccessToken(requestToken: TwitterApiRequestToken, oauthVerifier: string): Promise<TwitterApiAccessToken> {
-        if (this.api === null) {
-            return Promise.reject<TwitterApiAccessToken>(new Error('Get request token before getting access token.'))
-        }
-        return new Promise<TwitterApiAccessToken>((resolve, reject) => {
-            this.api.getAccessToken(requestToken.requestToken, requestToken.requestTokenSecret, oauthVerifier,
-            (err: any, accessToken: string, accessTokenSecret: string) => {
-                if (err) {
-                    console.error(err)
-                    reject(err)
-                    return
-                }
-                resolve({
-                    accessToken: accessToken,
-                    accessTokenSecret: accessTokenSecret,
-                })
-            })
-        })
-    }
+	getAccessToken(requestToken: RequestToken, oauthVerifier: string): Promise<AccessToken> {
+		return new Promise<AccessToken>((resolve, reject) => {
+			if (!this.api) {
+				reject(new Error('Get request token before getting access token'))
+				return
+			}
+			this.api.getAccessToken(requestToken.requestToken, requestToken.requestTokenSecret, oauthVerifier,
+				(err: any, accessToken: string, accessTokenSecret: string) => {
+					if (err) {
+						reject(err)
+						return
+					}
+					resolve({
+						accessToken: accessToken,
+						accessTokenSecret: accessTokenSecret,
+					})
+				})
+		})
+	}
 }
 
 export class Twitter {
 
-    private api: any
+	private api: any
 
-    constructor(private credentials: TwitterCredentials) {
-        this.api = new TwitterApi({
-            consumerKey: credentials.consumerKey,
-            consumerSecret: credentials.consumerSecret,
-            callback: 'http://twitter.com',
-        })
-    }
+	constructor(private credentials: TwitterCredentials) {
+		this.api = new TwitterApi({
+			consumerKey: credentials.consumerKey,
+			consumerSecret: credentials.consumerSecret,
+			callback: 'http://twitter.com',
+		})
+	}
 
-    postTweetWithImage(message: string, imageFilePath: string): void {
-        this.api.uploadMedia({media: imageFilePath},
-        this.credentials.accessToken,
-        this.credentials.accessTokenSecret, (err: any, data: any, response: any) => {
-            this.api.statuses('update', {
-                status: message,
-                media_ids: data.media_id_string,
-            }, this.credentials.accessToken, this.credentials.accessTokenSecret, (err: any) => {})
-        })
-    }
+	/**
+	 * 画像つきツイートする
+	 * @param message ツイート本文
+	 * @param imageFilePath 添付画像のファイルパス
+	 */
+	postTweetWithImage(message: string, imageFilePath: string): Promise<any> {
+		return new Promise<any>((resolve, reject) => {
+			toBase64Image(imageFilePath).then((base64Data) => {
+				this.api.uploadMedia({ media: base64Data, isBase64: true },
+					this.credentials.accessToken,
+					this.credentials.accessTokenSecret, (err: Error, mediaResponse: any) => {
+						if (err) {
+							reject(err)
+							return
+						}
+
+						this.postTweet(message, mediaResponse.media_id_string).then(response => {
+							resolve({
+								uploadMediaResponse: mediaResponse,
+								updateStatusesResponse: response,
+							})
+						}, err => {
+							reject(err)
+							return
+						})
+					})
+			}, err => {
+				reject(err)
+				return
+			})
+		})
+	}
+
+	/**
+	 * ツイートする
+	 * @param message ツイート本文
+	 * @param mediaId 添付メディアのID
+	 */
+	postTweet(message: string, mediaId: string): Promise<any> {
+		return new Promise<any>((resolve, reject) => {
+			this.api.statuses('update', {
+				status: message,
+				media_ids: mediaId,
+			}, this.credentials.accessToken, this.credentials.accessTokenSecret, (err: Error, response: any) => {
+				if (err) {
+					reject(err)
+					return
+				}
+				resolve(response)
+			})
+		})
+	}
 }

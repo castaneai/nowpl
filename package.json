@@ -6,8 +6,9 @@
     "type": "git",
     "url": "https://github.com/castaneai/nowpl"
   },
-  "main": "src/main.js",
+  "main": "src/app.js",
   "scripts": {
+    "postinstall": "electron-rebuild",
     "start": "tsc && electron .",
     "tsc": "tsc"
   },
@@ -17,7 +18,8 @@
     "electron": "^1.6.2",
     "electron-json-storage": "^3.0.1",
     "es6-promise": "^4.1.0",
-    "itunes-win": "0.0.5",
+    "file-url": "^2.0.2",
+    "itunes-nowplaying-win": "0.0.1",
     "node-twitter-api": "^1.8.0",
     "semantic-ui-css": "^2.2.9",
     "tempfile": "^1.1.1"
@@ -25,6 +27,7 @@
   "devDependencies": {
     "@types/electron": "^1.4.33",
     "@types/electron-json-storage": "0.0.19",
+    "@types/file-url": "^1.0.28",
     "@types/node": "^7.0.8",
     "@types/tempfile": "^1.1.5",
     "electron-rebuild": "^1.5.7",

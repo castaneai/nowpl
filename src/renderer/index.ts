@@ -1,32 +1,46 @@
 import { ipcRenderer } from 'electron'
-import { NowPlayingTrackInfo } from '../main'
+import { NowPlayingTrack, NowPlayingTweet } from '../main'
+const fileUrl = require('file-url')  // using require because error
+
+function createTweetMessage(track: NowPlayingTrack) {
+	return `#nowplaying ${track.name} by ${track.artist}`
+}
+
+ipcRenderer.on('log', (event, arg) => {
+	console.log(arg)
+})
+
+let nowPlayingTrack: NowPlayingTrack
 
 window.onload = () => {
-    ipcRenderer.on('twitter-auth-reply', (event, arg) => {
-        console.log(arg)
-    })
-    ipcRenderer.send('twitter-auth')
+	const tweetButtonElement = document.getElementById('tweet-button')
+	const trackNameElement = document.getElementById('track-name')
+	const artworkImageElement = document.getElementById('artwork')
 
-    const tweetButtonElement = document.getElementById('tweet-button')
-    let nowPlayingTrack: NowPlayingTrackInfo
+	ipcRenderer.on('twitter-auth-reply', (event, arg) => {
+		ipcRenderer.send('itunes-get-track')
+	})
 
-    tweetButtonElement.addEventListener('click', () => {
-        if (!nowPlayingTrack) {
-            console.error('nowplaying track not found')
-            return
-        }
-        const message = `#nowplaying ${nowPlayingTrack.name} - ${nowPlayingTrack.artist}`
-        console.log(message)
-        ipcRenderer.send('twitter-post', message)
-    })
+	ipcRenderer.on('itunes-get-track-reply', (event, arg) => {
+		nowPlayingTrack = arg as NowPlayingTrack
+		console.log('get track success')
+		console.log(nowPlayingTrack)
+		trackNameElement.innerHTML = createTweetMessage(nowPlayingTrack)
+		artworkImageElement.style.backgroundImage = `url(${fileUrl(nowPlayingTrack.artworkPath)})`
+	})
 
-    const trackNameElement = document.getElementById('track-name')
-    const artworkImageElement = document.getElementById('artwork')
+	tweetButtonElement.addEventListener('click', () => {
+		if (!nowPlayingTrack) {
+			console.log('nowplaying track not found')
+			return
+		}
+		const tweet: NowPlayingTweet = {
+			message: createTweetMessage(nowPlayingTrack),
+			artworkPath: nowPlayingTrack.artworkPath,
+		}
+		ipcRenderer.send('twitter-post', tweet)
+	})
 
-    ipcRenderer.on('itunes-get-track-reply', (event, arg) => {
-        nowPlayingTrack = arg as NowPlayingTrackInfo
-        trackNameElement.innerHTML = `${nowPlayingTrack.name} - ${nowPlayingTrack.artist}`
-        artworkImageElement.style.backgroundImage = `url(${nowPlayingTrack.artworkUrl})`
-    })
-    ipcRenderer.send('itunes-get-track')
+	// first, twitter auth
+	ipcRenderer.send('twitter-auth')
 }

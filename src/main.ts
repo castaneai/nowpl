@@ -1,69 +1,65 @@
-import { app, BrowserWindow, ipcMain, nativeImage } from 'electron'
+import { ipcMain } from 'electron'
 import { UserStorage } from './user-storage'
 import { Twitter } from './twitter'
-import * as ITunesWin from 'itunes-win'
-const tempfile = require('tempfile')
-import * as fs from 'fs'
+import * as ITunesNowPlaying from 'itunes-nowplaying-win'
+import * as tempfile from 'tempfile'
 
-export interface NowPlayingTrackInfo {
-  name: string
-  artist: string
-  artworkUrl: string
+export interface NowPlayingTrack {
+	name: string
+	artist: string
+	artworkPath: string
+}
+
+export interface NowPlayingTweet {
+	message: string
+	artworkPath: string
 }
 
 let twitter: Twitter
-let nowPlayingArtworkImagePath: string
 
 ipcMain.on('itunes-get-track', (event, arg) => {
-  ITunesWin.getCurrentTrack((err, track) => {
-    if (err) {
-      return
-    }
-    const image = nativeImage.createFromBuffer(track.artwork.data)
-    const tempFilePath = tempfile('.png')
-    fs.writeFile(tempFilePath, image.toPNG(), (err) => {
-      if (err) {
-        return
-      }
-      track.artwork.data = null
-      nowPlayingArtworkImagePath = tempFilePath
-      const trackInfo: NowPlayingTrackInfo = {
-        name: track.name,
-        artist: track.artist,
-        artworkUrl: `file:///${nowPlayingArtworkImagePath.split('\\').join('/')}`
-      }
-      event.sender.send('itunes-get-track-reply', trackInfo)
-    })
-  })
+	ITunesNowPlaying.getNowplaying((err, track) => {
+		// TODO: error reporting to renderer
+		if (err) {
+			console.error(err)
+			return
+		}
+		const nowPlayingTrackInfo: NowPlayingTrack = {
+			name: track.name,
+			artist: track.artist,
+			artworkPath: '',
+		}
+		if (track.artworkCount > 0) {
+			const tempArtworkPath = tempfile(`.${track.artworkFormat.toLowerCase()}`)
+			ITunesNowPlaying.saveNowplayingArtworkToFile(tempArtworkPath, (errr) => {
+				if (errr) {
+					console.error(errr)
+				}
+				if (!errr) {
+					nowPlayingTrackInfo.artworkPath = tempArtworkPath
+				}
+				event.sender.send('itunes-get-track-reply', nowPlayingTrackInfo)
+			})
+		} else {
+			event.sender.send('itunes-get-track-reply', nowPlayingTrackInfo)
+		}
+	})
 })
 
 ipcMain.on('twitter-auth', (event, arg) => {
-  UserStorage.getTwitterCredentials()
-  .then(credentials => {
-    twitter = new Twitter(credentials)
-  }, err => {
-    // TODO: display error.
-    console.error(err)
-  })
+	UserStorage.getTwitterCredentials().then(credentials => {
+		twitter = new Twitter(credentials)
+		event.sender.send('twitter-auth-reply', credentials)
+	}, err => {
+		event.sender.send('twitter-auth-reply', err)
+	})
 })
 
 ipcMain.on('twitter-post', (event, arg) => {
-  const message = arg as string
-  twitter.postTweetWithImage(message, nowPlayingArtworkImagePath)
-})
-
-let mainWindow: Electron.BrowserWindow
-
-app.on('ready', () => {
-  mainWindow = new BrowserWindow({width: 400, height: 400, frame: false})
-  mainWindow.loadURL(`file://${__dirname}/renderer/index.html`)
-  mainWindow.webContents.openDevTools()
-  mainWindow.on('closed', (): void => mainWindow = null)
-  mainWindow.setMenu(null)
-})
-
-app.on('window-all-closed', () => {
-  if (process.platform !== 'darwin') {
-    app.quit()
-  }
+	const tweet = arg as NowPlayingTweet
+	twitter.postTweetWithImage(tweet.message, tweet.artworkPath).then((data) => {
+		event.sender.send('log', data)
+	}, err => {
+		event.sender.send('log', err)
+	})
 })
